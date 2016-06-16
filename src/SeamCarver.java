@@ -5,9 +5,50 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class SeamCarver {
 	Picture picture;
+	double[][] energyTo;
+	int[][] pathFrom;
+	private static final double INFINITY = Double.MAX_VALUE;
 	public SeamCarver(Picture picture) {
 		// create a seam carver object based on the given picture
 		this.picture = new Picture(picture);
+		this.energyTo = new double[picture.height()][picture.width()];
+		this.pathFrom = new int[picture.height()][picture.width()];
+		for (int i = 0; i < energyTo.length; i++) {
+			for (int j =0; j < energyTo[0].length; j++) {
+				if (i == 0) {
+					energyTo[i][j] = 0;
+				}
+				else {
+					energyTo[i][j] = INFINITY;
+				}
+			}
+		}
+	}
+	private int indToX (int ind) {
+		
+	}
+	private int indToY (int ind) {
+		
+	}
+	private int xyToInd (int x, int y) {
+		
+	}
+	private class FindSeam {
+		public FindSeam() {
+			int indFrom, indTo;
+			for (int i = 0; i < energyTo.length; i++) {
+				for (int j =0; j < energyTo[0].length; j++) {
+					indFrom = xyToInd(j, i);
+				}
+			}
+		}
+		private void relax(int indFrom, int indTo) {
+			if (energyTo[indToY(indTo)][indToX(indTo)] > 
+				energyTo[indToY(indFrom)][indToX(indFrom)] + energy(indToX(indTo), indToY(indTo))) {
+				energyTo[indToY(indTo)][indToX(indTo)] = energyTo[indToY(indFrom)][indToX(indFrom)] + energy(indToY(indTo), indToX(indTo));
+				pathFrom[indToY(indTo)][indToX(indTo)] = indFrom;
+			}
+		}
 	}
 	public Picture picture() {
 		// current picture
