@@ -1,6 +1,7 @@
 import java.awt.Color;
 
 import edu.princeton.cs.algs4.Picture;
+import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
 public class SeamCarver {
@@ -37,8 +38,23 @@ public class SeamCarver {
 		public FindSeam() {
 			int indFrom, indTo;
 			for (int i = 0; i < energyTo.length; i++) {
-				for (int j =0; j < energyTo[0].length; j++) {
-					indFrom = xyToInd(j, i);
+				for (int j = 0; j < energyTo[0].length; j++) {
+					if (i + 1 < energyTo.length) {
+						indFrom = xyToInd(j, i);
+						// S
+						indTo = xyToInd(j, i + 1);
+						relax(indFrom, indTo);
+						// WS
+						if (j - 1 >= 0) {
+							indTo = xyToInd(j - 1, i + 1);
+							relax(indFrom, indTo);
+						}
+						// ES
+						if (j + 1 < energyTo[0].length) {
+							indTo = xyToInd(j + 1, i + 1);
+							relax(indFrom, indTo);
+						}
+					}
 				}
 			}
 		}
@@ -48,6 +64,9 @@ public class SeamCarver {
 				energyTo[indToY(indTo)][indToX(indTo)] = energyTo[indToY(indFrom)][indToX(indFrom)] + energy(indToY(indTo), indToX(indTo));
 				pathFrom[indToY(indTo)][indToX(indTo)] = indFrom;
 			}
+		}
+		public Stack<Integer> getMinSeam() {
+			
 		}
 	}
 	public Picture picture() {
