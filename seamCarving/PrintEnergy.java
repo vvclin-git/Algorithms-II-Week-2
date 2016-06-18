@@ -16,7 +16,7 @@ public class PrintEnergy {
 
     public static void main(String[] args) {
 //        Picture picture = new Picture(args[0]);
-		Picture picture = new Picture("seamCarving\\3x4.png");
+		Picture picture = new Picture("seamCarving\\6x5.png");
 
         StdOut.printf("image is %d pixels wide by %d pixels high.\n", picture.width(), picture.height());
         
