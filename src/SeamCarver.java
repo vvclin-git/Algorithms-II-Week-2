@@ -82,17 +82,16 @@ public class SeamCarver {
 	        }
 		}
 		private void relax(int indFrom, int indTo) {
-			StdOut.print("energy TO: " + energyTo[indToY(indTo)][indToX(indTo)]);
-			StdOut.print(" | energy From: "  + energyTo[indToY(indFrom)][indToX(indFrom)]);
-			StdOut.print(" | energy: " + energy(indToX(indTo), indToY(indTo)));
+//			StdOut.print("energy TO: " + energyTo[indToY(indTo)][indToX(indTo)]);
+//			StdOut.print(" | energy From: "  + energyTo[indToY(indFrom)][indToX(indFrom)]);
+//			StdOut.print(" | energy: " + energy(indToX(indTo), indToY(indTo)));
 			if (energyTo[indToY(indTo)][indToX(indTo)] > 
 				energyTo[indToY(indFrom)][indToX(indFrom)] + energy(indToX(indTo), indToY(indTo))) {
 				energyTo[indToY(indTo)][indToX(indTo)] = energyTo[indToY(indFrom)][indToX(indFrom)] + energy(indToX(indTo), indToY(indTo));
 				pathFrom[indTo] = indFrom;
 				StdOut.println(" new energy TO: " + energyTo[indToY(indTo)][indToX(indTo)]);
 			}
-			StdOut.println();
-//			energyTo[indToY(indTo)][indToX(indTo)] = energyTo[indToY(indFrom)][indToX(indFrom)] + 1000;
+//			StdOut.println();
 		}
 		public Stack<Integer> getMinSeam() {
 			Stack<Integer> minSeam = new Stack<Integer>();
