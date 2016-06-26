@@ -60,7 +60,7 @@ public class SeamCarver {
 		int width, height;
 		Picture p;
 		public FindSeam(Picture p) {			
-			this.p = new Picture(p);
+			this.p = p;
 			this.width = p.width();
 			this.height = p.height();
 			this.energyTo = new double[p.height()][p.width()];			
@@ -79,26 +79,7 @@ public class SeamCarver {
 				pathFrom[ind] = -1;
 			}
 			updateEnergyTo(width, height);
-			// output energyTo for debugging
-//			StdOut.println(p.width() + " x " + p.height());
-//			StdOut.println("energyTO: ");
-//			for (int row = 0; row < energyTo.length; row++) {
-//	            for (int col = 0; col < energyTo[0].length; col++)
-//	                StdOut.printf("%9.0f ", energyTo[row][col]);
-//	            StdOut.println();
-//	        }
-//			StdOut.println("energy: ");
-//			for (int row = 0; row < energyTo.length; row++) {
-//	            for (int col = 0; col < energyTo[0].length; col++)
-//	                StdOut.printf("%9.0f ", energy(col, row));
-//	            StdOut.println();
-//	        }
-//			StdOut.println("picture: ");
-//			for (int row = 0; row < energyTo.length; row++) {
-//	            for (int col = 0; col < energyTo[0].length; col++)
-//	                StdOut.printf(p.get(col, row).toString() + " ");
-//	            StdOut.println();
-//	        }
+
 		}
 		private void updateEnergyTo(int width, int height) {
 			int indFrom, indTo;
@@ -143,8 +124,7 @@ public class SeamCarver {
 				}
 			}			
 		}
-		private void relax(int indFrom, int indTo) {
-			
+		private void relax(int indFrom, int indTo) {			
 			int fromY, fromX, toY, toX;
 			fromY = indToY(indFrom, p);
 			fromX = indToX(indFrom, p);
@@ -165,11 +145,30 @@ public class SeamCarver {
 			}
 //			StdOut.println();
 		}
+		private void relax1(int fromX, int fromY, int toX, int toY) {			
+			int indTo, indFrom;
+			indFrom = xyToInd(fromX, fromY, p);
+			indTo = xyToInd(toX, toY, p); 
+//			StdOut.print("energy TO " + "(" + toX + ", " + toY + "): " + energyTo[indToY(indTo, p)][indToX(indTo, p)]);
+//			StdOut.print(" | energy From" + "(" + fromX + ", " + fromY + "): "  + energyTo[indToY(indFrom, p)][indToX(indFrom, p)]);
+//			StdOut.print(" | energy: " + energy(indToX(indTo, p), indToY(indTo, p)));
+			if (energyTo[toY][toX] > 
+				energyTo[fromY][fromX] + energy(toX, toY)) {
+				energyTo[toY][toX] = energyTo[fromY][fromX] + energy(toX, toY);
+				pathFrom[indTo] = indFrom;
+//				StdOut.println(" new energy TO: " + energyTo[toY][toX] + "| new path from ind: " + indFrom);
+//				for (int j : pathFrom) {
+//					StdOut.print(j + ", ");
+//				}
+				
+			}
+//			StdOut.println();
+		}
 		private double energy(int x, int y) {
 			// energy of pixel at column x and row y
 			double energyX, energyY;			
-			if ((x > 0 & x < p.width() - 1) & 
-					(y > 0 & y < p.height() - 1)){
+			if ((x > 0 & x < width - 1) & 
+					(y > 0 & y < height - 1)){
 				energyX = colorDistSq(p.get(x - 1, y), p.get(x + 1, y));
 				energyY = colorDistSq(p.get(x, y - 1), p.get(x, y + 1));
 //				StdOut.println(picture.get(x-1, y));
@@ -181,6 +180,31 @@ public class SeamCarver {
 				return 1000;
 			}
 			
+		}
+		private void dataDump() {
+			boolean debug = false;
+//			boolean debug = true;
+			if (!debug) {
+				return;
+			}
+			StdOut.println("energyTO: ");
+			for (int row = 0; row < height; row++) {
+	            for (int col = 0; col < width; col++)
+	                StdOut.printf("%9.0f ", energyTo[row][col]);
+	            StdOut.println();
+	        }
+			StdOut.println("energy: ");
+			for (int row = 0; row < height; row++) {
+	            for (int col = 0; col < width; col++)
+	                StdOut.printf("%9.0f ", energy(col, row));
+	            StdOut.println();
+	        }
+			StdOut.println("picture: ");
+			for (int row = 0; row < height; row++) {
+	            for (int col = 0; col < width; col++)
+	                StdOut.printf(p.get(col, row).toString() + " ");
+	            StdOut.println();
+			}
 		}
 		public Stack<Integer> getMinSeam() {
 			Stack<Integer> minSeam = new Stack<Integer>();
@@ -199,18 +223,24 @@ public class SeamCarver {
 			return minSeam;
 		}
 		public void vCut(int[] seam) {
+//			StdOut.println(width + " x " + height + " before v cut: ");
+			dataDump();
 			for (int j = 0; j < height; j++) {
 				for (int i = seam[j]; i < width; i++) {
 					if (i < width - 1) {
 						p.set(i, j, p.get(i + 1, j));
 						updateAdjEnergyTo(j, i);						
 					}					
-				}
-				
+				}				
 			}
 			width -= 1;
+//			StdOut.println(width + " x " + height + " after v cut: ");
+			dataDump();
+			
 		}
 		public void hCut(int[] seam) {
+//			StdOut.println(width + " x " + height + " before h cut: ");
+			dataDump();
 			for (int i = 0; i < width; i++) {
 				for (int j = seam[i]; j < height; j++){
 					if (j < height - 1) {
@@ -220,6 +250,8 @@ public class SeamCarver {
 				}
 			}
 			height -= 1;
+//			StdOut.println(width + " x " + height + " after h cut: ");
+			dataDump();
 		}
 	}
 	public Picture picture() {
@@ -276,12 +308,13 @@ public class SeamCarver {
 				throw new java.lang.IllegalArgumentException();
 			}
 		}
-		for (int i = 0; i < seam.length - 1; i++) {
+		for (int i = 0; i < seam.length; i++) {
 			if (seam[i] < 0 | seam[i] >= dim2) {
 				throw new java.lang.IllegalArgumentException();
 			}
 		}
 	}
+	
 	public int[] findHorizontalSeam() {
 		// sequence of indices for horizontal seam
 		int[] hSeam = new int[width()];
@@ -332,11 +365,11 @@ public class SeamCarver {
 
 	public static void main(String[] args) {
 		Picture pic = new Picture("seamCarving\\6x5.png");
-		SeamCarver sc = new SeamCarver(pic);	
-		int[] seam = {2, 1, 2, 1, 2, 1};
-		sc.removeHorizontalSeam(seam);
-		Picture picCarved = sc.picture();
-		picCarved.save("seamCarving\\6x5c.png");
+		SeamCarver sc = new SeamCarver(pic);
+		sc.removeHorizontalSeam(sc.findHorizontalSeam());
+		sc.removeVerticalSeam(sc.findVerticalSeam());
+//		Picture picCarved = sc.picture();
+//		picCarved.save("seamCarving\\6x5c.png");
 //		StdOut.print("{");
 //		int[] vSeam = sc.findVerticalSeam();
 //		for (int j : vSeam) {
