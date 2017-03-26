@@ -9,6 +9,7 @@ public class SeamCarver {
 	private FindSeam findSeam, findSeamT;
 	private int width, height;
 	private static final double INFINITY = Double.MAX_VALUE;
+	private boolean lastHorizontal; // indicates if the last operation is horizontal
 	public SeamCarver(Picture picture) {
 		// create a seam carver object based on the given picture
 		if (picture == null) {
@@ -17,10 +18,10 @@ public class SeamCarver {
 		this.picture = new Picture(picture);
 		this.width = picture.width();
 		this.height = picture.height();
-		this.pictureT = picTrans(picture);		
+		//this.pictureT = picTrans(picture);		
 		this.findSeam = new FindSeam(this.picture);
-		this.findSeamT = new FindSeam(this.pictureT);
-		
+		//this.findSeamT = new FindSeam(this.pictureT);
+		this.lastHorizontal = false;
 	}
 	
 	private Picture picTrans (Picture p) {
@@ -186,8 +187,8 @@ public class SeamCarver {
 			return minSeam;
 		}
 		public void vCut(int[] seam) {
-			StdOut.println(width + " x " + height + " before v cut: ");
-			dataDump();
+//			StdOut.println(width + " x " + height + " before v cut: ");
+//			dataDump();
 			for (int j = 0; j < height; j++) {
 				for (int i = seam[j]; i < width; i++) {
 					if (i < width - 1) {
@@ -197,35 +198,52 @@ public class SeamCarver {
 				}				
 			}
 			width -= 1;
-			StdOut.println(width + " x " + height + " after v cut: ");
-			dataDump();
+//			StdOut.println(width + " x " + height + " after v cut: ");
+//			dataDump();
 			
 		}
-		public void hCut(int[] seam) {
-			StdOut.println(width + " x " + height + " before h cut: ");
-			dataDump();
+//		public void hCut(int[] seam) {			
+//			StdOut.println(width + " x " + height + " before h cut: ");
+//			dataDump();
+//			for (int i = 0; i < width; i++) {
+//				for (int j = seam[i]; j < height; j++){
+//					if (j < height - 1) {
+//						p.set(i, j, p.get(i, j + 1));
+//						updateAdjEnergyTo(j, i);					
+//					}
+//				}
+//			}
+//			height -= 1;
+//			StdOut.println(width + " x " + height + " after h cut: ");
+//			dataDump();
+//		}
+		public Picture picture() {
+			// create a new picture object according to trimmed dimensions
+			Picture output = new Picture(width, height);
 			for (int i = 0; i < width; i++) {
-				for (int j = seam[i]; j < height; j++){
-					if (j < height - 1) {
-						p.set(i, j, p.get(i, j + 1));
-						updateAdjEnergyTo(j, i);					
-					}
+				for (int j = 0; j < height; j++) {
+					output.set(i, j, p.get(i, j));
 				}
 			}
-			height -= 1;
-			StdOut.println(width + " x " + height + " after h cut: ");
-			dataDump();
+			return output;
 		}
 	}
 	public Picture picture() {
-		// current picture
-		Picture output = new Picture(width, height);
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				output.set(i, j, findSeam.p.get(i, j));
-			}
+		// return picture object according to last operation
+		if (lastHorizontal) {
+			return findSeamT.picture();					
 		}
-		return output;
+		else {
+			return findSeam.picture();
+		}
+		// current picture
+//		Picture output = new Picture(width, height);
+//		for (int i = 0; i < width; i++) {
+//			for (int j = 0; j < height; j++) {
+//				output.set(i, j, findSeam.p.get(i, j));
+//			}
+//		}		
+//		return output;
 	}
 	public int width() {
 		// width of current picture
@@ -270,6 +288,7 @@ public class SeamCarver {
 		}
 		for (int i = 0; i < seam.length; i++) {
 			if (seam[i] < 0 | seam[i] >= dim2) {
+				StdOut.print("illegal seam" + seam[i] + "\n");
 				throw new java.lang.IllegalArgumentException();
 			}
 		}
@@ -279,6 +298,10 @@ public class SeamCarver {
 		// sequence of indices for horizontal seam
 		int[] hSeam = new int[width()];
 		int i = 0;
+		// check last operation, update the findseam object if the last operation is not horizontal
+		if (!lastHorizontal) {
+			findSeamT = new FindSeam(picTrans(findSeam.picture()));
+		}		
 //		StdOut.println();
 //		StdOut.print("min h seam: ");
 		for (Node n : findSeamT.getMinSeam()) {
@@ -294,12 +317,15 @@ public class SeamCarver {
 		// sequence of indices for vertical seam
 		int[] vSeam = new int[height()];
 		int i = 0;
+		// check last operation, update the findseam object if the last operation is horizontal
+		if (lastHorizontal) {
+			findSeam = new FindSeam(picTrans(findSeamT.picture()));
+		}
 //		StdOut.println("v seam size : " + findSeam.getMinSeam().size());
 		for (Node n : findSeam.getMinSeam()) {
 			vSeam[i] = n.col();
 			i++;
 		}
-
 		return vSeam;
 	}
 	public void removeHorizontalSeam(int[] seam) {
@@ -308,9 +334,14 @@ public class SeamCarver {
 			throw new java.lang.NullPointerException();
 		}
 		checkSeam(seam, width, height);
-		findSeam.hCut(seam);
+//		findSeam.hCut(seam);
+		// check last operation, update the findseam object if the last operation is not horizontal
+		if (!lastHorizontal) {
+			findSeamT = new FindSeam(picTrans(findSeam.picture()));
+		}		
 		findSeamT.vCut(seam);
 		height -= 1;
+		lastHorizontal = true;
 	}
 	public void removeVerticalSeam(int[] seam) {
 		// remove vertical seam from current picture
@@ -318,53 +349,48 @@ public class SeamCarver {
 			throw new java.lang.NullPointerException();
 		}
 		checkSeam(seam, height, width);
+		// check last operation, update the findseam object if the last operation is horizontal
+		if (lastHorizontal) {
+			findSeam = new FindSeam(picTrans(findSeamT.picture()));
+		}
 		findSeam.vCut(seam);
-		findSeamT.hCut(seam);
+//		findSeamT.hCut(seam);
 		width -= 1;
+		lastHorizontal = false;
 	}
 
 	public static void main(String[] args) {
-		Picture pic = new Picture("seamCarving\\6x5.png");
+//		Picture pic = new Picture("seamCarving\\6x5.png");
+		Picture pic = new Picture("seamCarving\\HJocean.png");
 		SeamCarver sc = new SeamCarver(pic);
-		StdOut.println("remove v seam");
-		StdOut.print("{");
-		int[] vSeam = sc.findVerticalSeam();
-		for (int j : vSeam) {
-			StdOut.print(j + ", ");
-		}
-		StdOut.println("}");		
-		sc.removeVerticalSeam(vSeam);
-		StdOut.println("remove h seam");
-		StdOut.print("{");
-		int[] hSeam = sc.findHorizontalSeam();
-		for (int j : hSeam) {
-			StdOut.print(j + ", ");
-		}
-		StdOut.println("}");		
-		sc.removeHorizontalSeam(sc.findHorizontalSeam());
-//		Picture picCarved = sc.picture();
-//		picCarved.save("seamCarving\\6x5c.png");
+		for (int i = 1; i < 12; i++) {
+			sc.removeVerticalSeam(sc.findVerticalSeam());
+		}		
+		Picture picture = SCUtility.toEnergyPicture(sc);
+        int[] verticalSeam = sc.findVerticalSeam();
+        Picture overlay = SCUtility.seamOverlay(picture, false, verticalSeam);
+        overlay.show();
+		
+		
+////		Picture picT = sc.picTrans(pic);
+////		SeamCarver scT = new SeamCarver(picT);
+//		StdOut.println("remove v seam");
 //		StdOut.print("{");
 //		int[] vSeam = sc.findVerticalSeam();
 //		for (int j : vSeam) {
 //			StdOut.print(j + ", ");
 //		}
-//		StdOut.println("}");
+//		StdOut.println("}");		
+//		//sc.removeVerticalSeam(vSeam);
+//		StdOut.println("remove h seam");
 //		StdOut.print("{");
 //		int[] hSeam = sc.findHorizontalSeam();
 //		for (int j : hSeam) {
 //			StdOut.print(j + ", ");
 //		}
-//		StdOut.println("}");
-//		StdOut.println("}");
-//		for (int i = 0; i < 12; i++) {
-//			StdOut.println("(" + sc.indToX(i) + ", " + sc.indToY(i) + ")");
-//		}
-//		for (int j = 0; j < sc.height(); j++) {
-//			for (int i =0; i < sc.width(); i++) {
-//				StdOut.println("(" + i + ", " + j + ") |" + sc.xyToInd(i, j));
-//			}
-//		}
+//		StdOut.println("}");		
+//		//sc.removeHorizontalSeam(sc.findHorizontalSeam());
+
 	}
 
 }
