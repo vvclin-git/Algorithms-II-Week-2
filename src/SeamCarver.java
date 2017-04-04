@@ -80,11 +80,11 @@ public class SeamCarver {
 						// S
 						relax(j, i, j, i + 1);
 						// WS
-						if (j - 1 >= 0) {
+						if (j >= 2) {
 							relax(j, i, j - 1, i + 1);
 						}
 						// ES
-						if (j + 1 < width) {
+						if (j < width - 2) {
 							relax(j, i, j + 1, i + 1);
 						}
 					}
@@ -97,11 +97,11 @@ public class SeamCarver {
 				// S
 				relax(col, row, col, row + 1);
 				// WS
-				if (col - 1 >= 0) {
+				if (col >= 2) {
 					relax(col, row, col - 1, row + 1);
 				}
 				// ES
-				if (col + 1 < width) {
+				if (col < width - 2) {
 					relax(col, row, col + 1, row + 1);
 				}
 			}			
@@ -146,13 +146,13 @@ public class SeamCarver {
 			StdOut.println("energyTO: ");
 			for (int row = 0; row < height; row++) {
 	            for (int col = 0; col < width; col++)
-	                StdOut.printf("%9.0f ", energyTo[row][col]);
+	                StdOut.printf("%9.2f ", energyTo[row][col]);
 	            StdOut.println();
 	        }
 			StdOut.println("energy: ");
 			for (int row = 0; row < height; row++) {
 	            for (int col = 0; col < width; col++)
-	                StdOut.printf("%9.0f ", energy(col, row));
+	                StdOut.printf("%9.2f ", energy(col, row));
 	            StdOut.println();
 	        }
 			StdOut.println("picture: ");
@@ -190,14 +190,21 @@ public class SeamCarver {
 //			StdOut.println(width + " x " + height + " before v cut: ");
 //			dataDump();
 			for (int j = 0; j < height; j++) {
-				for (int i = seam[j]; i < width; i++) {
-					if (i < width - 1) {
+				for (int i = seam[j]; i < width - 1; i++) {
+					//if (i < width - 1) {
 						p.set(i, j, p.get(i + 1, j));
-						updateAdjEnergyTo(j, i);						
-					}					
+						if (j == 0) {
+							energyTo[j][i] = 1000;
+						}
+						else {
+							energyTo[j][i] = INFINITY;
+						}						
+//						updateAdjEnergyTo(j, i);						
+					//}					
 				}				
 			}
 			width -= 1;
+			updateEnergyTo(width, height);			
 //			StdOut.println(width + " x " + height + " after v cut: ");
 //			dataDump();
 			
@@ -231,7 +238,7 @@ public class SeamCarver {
 	public Picture picture() {
 		// return picture object according to last operation
 		if (lastHorizontal) {
-			return findSeamT.picture();					
+			return picTrans(findSeamT.picture());					
 		}
 		else {
 			return findSeam.picture();
@@ -288,7 +295,7 @@ public class SeamCarver {
 		}
 		for (int i = 0; i < seam.length; i++) {
 			if (seam[i] < 0 | seam[i] >= dim2) {
-				StdOut.print("illegal seam" + seam[i] + "\n");
+				StdOut.print("dimension: " + dim2 + ", illegal seam " + seam[i] + "\n");
 				throw new java.lang.IllegalArgumentException();
 			}
 		}
@@ -344,6 +351,7 @@ public class SeamCarver {
 		lastHorizontal = true;
 	}
 	public void removeVerticalSeam(int[] seam) {
+//		StdOut.print("before removing: " + width + "\n");		
 		// remove vertical seam from current picture
 		if (seam == null) {
 			throw new java.lang.NullPointerException();
@@ -353,24 +361,41 @@ public class SeamCarver {
 		if (lastHorizontal) {
 			findSeam = new FindSeam(picTrans(findSeamT.picture()));
 		}
+		
 		findSeam.vCut(seam);
+		
 //		findSeamT.hCut(seam);
 		width -= 1;
+//		StdOut.print("after removing: " + width + "\n");
 		lastHorizontal = false;
 	}
 
 	public static void main(String[] args) {
 //		Picture pic = new Picture("seamCarving\\6x5.png");
-		Picture pic = new Picture("seamCarving\\HJocean.png");
+		Picture pic = new Picture("seamCarving\\6x5_after_cut.png");
+//		Picture pic = new Picture("seamCarving\\HJocean.png");
 		SeamCarver sc = new SeamCarver(pic);
-		for (int i = 1; i < 12; i++) {
-			sc.removeVerticalSeam(sc.findVerticalSeam());
-		}		
-		Picture picture = SCUtility.toEnergyPicture(sc);
+//		for (int i = 1; i < 34; i++) {
+//			sc.removeVerticalSeam(sc.findVerticalSeam());
+//		}		
+//		Picture picture = SCUtility.toEnergyPicture(sc);
         int[] verticalSeam = sc.findVerticalSeam();
-        Picture overlay = SCUtility.seamOverlay(picture, false, verticalSeam);
-        overlay.show();
-		
+//        Picture overlay = SCUtility.seamOverlay(picture, false, verticalSeam);
+//        overlay.save("6x5_after_cut_overlay_1.png");
+		StdOut.println("remove v seam");
+		StdOut.print("{");
+		int[] vSeam = sc.findVerticalSeam();
+		for (int j : vSeam) {
+			StdOut.print(j + ", ");
+		}
+		StdOut.println("}");
+        sc.removeVerticalSeam(verticalSeam);
+//        pic = sc.picture();
+//        pic.save("6x5_after_cut.png");
+//        verticalSeam = sc.findVerticalSeam();
+//        picture = SCUtility.toEnergyPicture(sc);
+//        overlay = SCUtility.seamOverlay(picture, false, verticalSeam);
+//        overlay.save("6x5_overlay_2.png");
 		
 ////		Picture picT = sc.picTrans(pic);
 ////		SeamCarver scT = new SeamCarver(picT);

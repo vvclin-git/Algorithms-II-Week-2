@@ -36,16 +36,10 @@ public class ResizeDemo {
         }
 
         for (int i = 0; i < removeColumns; i++) {
-        	StdOut.printf("removing vertical seams " + i + " | ");
-            int[] verticalSeam = sc.findVerticalSeam();
-            if (i == 12) {
-            	//StdOut.print(verticalSeam.length); 
-//            	for (int n : verticalSeam) {
-//            		StdOut.print(n + "\n");
-//            	}
-            }
+        	//StdOut.printf("removing vertical seams " + i + " | ");
+            int[] verticalSeam = sc.findVerticalSeam();            
             sc.removeVerticalSeam(verticalSeam);
-            StdOut.printf("new image size is %d columns by %d rows\n", sc.width(), sc.height());
+            //StdOut.printf("new image size is %d columns by %d rows\n", sc.width(), sc.height());
         }
         Picture outputImg = sc.picture();
 
